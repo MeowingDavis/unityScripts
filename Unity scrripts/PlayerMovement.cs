@@ -4,49 +4,32 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
-    Rigidbody rb;
-    [SerializeField] float movementSpeed = 6f;
-    [SerializeField] float jumpForce = 5f;
-    [SerializeField] Transform groundCheck;
-    [SerializeField] LayerMask ground;
-    [SerializeField] AudioSource jumpSound;
+    public float moveSpeed = 5f;
+    public float jumpForce = 10f;
+    public float gravityScale = 1f; // Adjust this to control gravity
 
-    // Start is called before the first frame update
-    void Start()
+    private Rigidbody2D rb;
+    private bool isGrounded = false;
+
+    private void Start()
     {
-        rb =  GetComponent<Rigidbody>();
+        rb = GetComponent<Rigidbody2D>();
+        rb.gravityScale = gravityScale;
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Update()
     {
-        float horizonatalInput = Input.GetAxis("Horizontal");
-        float verticalInput = Input.GetAxis("Vertical");
+        // Check if the player is grounded
+        isGrounded = Physics2D.Raycast(transform.position, Vector2.down, 0.1f);
 
-        rb.velocity = new Vector3(horizonatalInput * movementSpeed, rb.velocity.y,  verticalInput * movementSpeed);
+        // Horizontal movement
+        float moveX = Input.GetAxis("Horizontal");
+        rb.velocity = new Vector2(moveX * moveSpeed, rb.velocity.y);
 
-        if (Input.GetButtonDown("Jump") && IsGrounded())
+        // Jumping
+        if (isGrounded && Input.GetKeyDown(KeyCode.Space))
         {
-                Jump();
+            rb.velocity = new Vector2(rb.velocity.x, jumpForce);
         }
-
-    }
-    void Jump()
-        {
-            rb.velocity = new Vector3(rb.velocity.x, jumpForce, rb.velocity.z);
-            jumpSound.Play();
-        }
-    private void OnCollisionEnter(Collision collision)
-    {
-        if (collision.gameObject.CompareTag("Enemy Head"))
-        {
-            Destroy(collision.transform.parent.gameObject);
-             Jump();
-        }
-    }
-
-    bool IsGrounded()
-    {
-       return Physics.CheckSphere(groundCheck.position, .1f, ground);
     }
 }
